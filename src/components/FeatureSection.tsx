@@ -103,7 +103,7 @@ const FeatureSection = () => {
                 </p>
                 <div className="flex items-center gap-4">
                   <div className="h-px flex-1 bg-border" />
-                  <span className="text-sm text-muted-foreground">Powered by AI</span>
+                  <span className="text-sm text-muted-foreground">Advanced Analytics</span>
                   <div className="h-px flex-1 bg-border" />
                 </div>
               </div>

@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Upload, Image, X, Camera, Folder, Calendar, MapPin, AlertCircle } from "lucide-react";
+import { Upload, Image, X, Camera, Folder, Calendar, MapPin, AlertCircle, Eye, BarChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { ImageAnalysisModal } from "@/components/ImageAnalysisModal";
 
 interface FieldImage {
   id: string;
@@ -17,6 +18,27 @@ interface FieldImage {
   notes: string;
   status: "pending" | "analyzed" | "flagged";
   tags: string[];
+  analysis?: {
+    healthScore: number;
+    ndvi: number;
+    chlorophyll: number;
+    moisture: number;
+    nitrogenLevel: number;
+    pestRisk: number;
+    diseaseRisk: number;
+    recommendations: string[];
+    detectedIssues: {
+      type: string;
+      severity: "low" | "medium" | "high";
+      affectedArea: number;
+    }[];
+    environmentalData?: {
+      temperature: number;
+      humidity: number;
+      windSpeed: number;
+      solarRadiation: number;
+    };
+  };
 }
 
 const FieldImages = () => {
@@ -29,7 +51,32 @@ const FieldImages = () => {
       location: "North Field, Section A",
       notes: "Slight yellowing observed on wheat leaves",
       status: "analyzed",
-      tags: ["wheat", "nitrogen-deficiency"]
+      tags: ["wheat", "nitrogen-deficiency"],
+      analysis: {
+        healthScore: 78,
+        ndvi: 0.68,
+        chlorophyll: 62,
+        moisture: 38,
+        nitrogenLevel: 71,
+        pestRisk: 15,
+        diseaseRisk: 20,
+        recommendations: [
+          "Apply nitrogen fertilizer within 3 days",
+          "Increase irrigation frequency",
+          "Monitor for fungal disease development",
+          "Consider micronutrient supplementation"
+        ],
+        detectedIssues: [
+          { type: "Nitrogen Deficiency", severity: "medium", affectedArea: 25 },
+          { type: "Water Stress", severity: "low", affectedArea: 12 }
+        ],
+        environmentalData: {
+          temperature: 26,
+          humidity: 62,
+          windSpeed: 8,
+          solarRadiation: 780
+        }
+      }
     },
     {
       id: "2",
@@ -39,12 +86,39 @@ const FieldImages = () => {
       location: "East Field, Section C",
       notes: "Possible aphid infestation",
       status: "flagged",
-      tags: ["corn", "pest-alert"]
+      tags: ["corn", "pest-alert"],
+      analysis: {
+        healthScore: 62,
+        ndvi: 0.58,
+        chlorophyll: 55,
+        moisture: 45,
+        nitrogenLevel: 68,
+        pestRisk: 75,
+        diseaseRisk: 35,
+        recommendations: [
+          "Immediate pest control measures required",
+          "Apply systemic insecticide",
+          "Increase monitoring frequency",
+          "Check adjacent fields for pest spread"
+        ],
+        detectedIssues: [
+          { type: "Aphid Infestation", severity: "high", affectedArea: 35 },
+          { type: "Leaf Damage", severity: "medium", affectedArea: 28 },
+          { type: "Nutrient Stress", severity: "low", affectedArea: 15 }
+        ],
+        environmentalData: {
+          temperature: 29,
+          humidity: 70,
+          windSpeed: 5,
+          solarRadiation: 920
+        }
+      }
     }
   ]);
   
   const [dragActive, setDragActive] = useState(false);
   const [selectedImage, setSelectedImage] = useState<FieldImage | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleDrag = (e: React.DragEvent) => {
@@ -106,6 +180,54 @@ const FieldImages = () => {
   const deleteImage = (id: string) => {
     setImages(prev => prev.filter(img => img.id !== id));
     toast.success("Image deleted");
+  };
+
+  const analyzeImage = (image: FieldImage) => {
+    // Simulate AI analysis
+    const updatedImage = {
+      ...image,
+      status: "analyzed" as const,
+      analysis: {
+        healthScore: Math.floor(Math.random() * 40) + 60,
+        ndvi: Math.random() * 0.5 + 0.5,
+        chlorophyll: Math.floor(Math.random() * 40) + 50,
+        moisture: Math.floor(Math.random() * 60) + 20,
+        nitrogenLevel: Math.floor(Math.random() * 40) + 60,
+        pestRisk: Math.floor(Math.random() * 60) + 10,
+        diseaseRisk: Math.floor(Math.random() * 50) + 5,
+        recommendations: [
+          "Monitor field conditions closely",
+          "Consider soil testing for nutrient levels",
+          "Apply preventive fungicide if humidity increases",
+          "Optimize irrigation schedule based on weather forecast"
+        ],
+        detectedIssues: [
+          { 
+            type: "Minor Stress Detected", 
+            severity: Math.random() > 0.5 ? "low" : "medium" as "low" | "medium", 
+            affectedArea: Math.floor(Math.random() * 20) + 5 
+          }
+        ],
+        environmentalData: {
+          temperature: Math.floor(Math.random() * 15) + 20,
+          humidity: Math.floor(Math.random() * 40) + 40,
+          windSpeed: Math.floor(Math.random() * 20) + 5,
+          solarRadiation: Math.floor(Math.random() * 400) + 600
+        }
+      }
+    };
+    
+    setImages(prev => prev.map(img => img.id === image.id ? updatedImage : img));
+    toast.success(`Analysis complete for ${image.name}`);
+    
+    // Open modal to show results
+    setSelectedImage(updatedImage);
+    setModalOpen(true);
+  };
+
+  const viewDetails = (image: FieldImage) => {
+    setSelectedImage(image);
+    setModalOpen(true);
   };
 
   return (
@@ -235,24 +357,49 @@ const FieldImages = () => {
               )}
 
               <div className="flex gap-2 pt-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => setSelectedImage(image)}
-                >
-                  <Image className="mr-1 h-3 w-3" />
-                  View Details
-                </Button>
-                <Button
-                  size="sm"
-                  variant="default"
-                  className="flex-1"
-                  onClick={() => toast.success("AI analysis started for " + image.name)}
-                >
-                  <AlertCircle className="mr-1 h-3 w-3" />
-                  Analyze
-                </Button>
+                {image.status === "analyzed" ? (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => viewDetails(image)}
+                    >
+                      <Eye className="mr-1 h-3 w-3" />
+                      View Analysis
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="default"
+                      className="flex-1"
+                      onClick={() => viewDetails(image)}
+                    >
+                      <BarChart className="mr-1 h-3 w-3" />
+                      Reports
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => setSelectedImage(image)}
+                    >
+                      <Image className="mr-1 h-3 w-3" />
+                      Preview
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="default"
+                      className="flex-1"
+                      onClick={() => analyzeImage(image)}
+                    >
+                      <AlertCircle className="mr-1 h-3 w-3" />
+                      Analyze
+                    </Button>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -274,6 +421,13 @@ const FieldImages = () => {
           </div>
         </Card>
       )}
+
+      {/* Analysis Modal */}
+      <ImageAnalysisModal 
+        image={selectedImage} 
+        open={modalOpen} 
+        onOpenChange={setModalOpen}
+      />
     </div>
   );
 };
