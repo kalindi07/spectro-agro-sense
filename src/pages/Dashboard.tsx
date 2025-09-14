@@ -1,6 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import {
   Droplets,
@@ -12,20 +14,58 @@ import {
   TrendingUp,
   MapPin,
   RefreshCw,
-  Download
+  Download,
+  Settings,
+  Bell,
+  Eye
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [lastUpdate, setLastUpdate] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedTimeRange, setSelectedTimeRange] = useState("24h");
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
+    toast({
+      title: "Refreshing Data",
+      description: "Fetching latest sensor readings...",
+    });
     setTimeout(() => {
       setLastUpdate(new Date());
       setIsRefreshing(false);
+      toast({
+        title: "Data Updated",
+        description: "All metrics have been refreshed.",
+      });
     }, 1500);
+  };
+
+  const handleViewDetails = (type: string) => {
+    if (type === 'field') {
+      navigate('/field-map');
+    } else if (type === 'alerts') {
+      navigate('/alerts');
+    } else if (type === 'images') {
+      navigate('/field-images');
+    }
+  };
+
+  const handleDownloadReport = () => {
+    toast({
+      title: "Generating Report",
+      description: "Your dashboard report is being prepared...",
+    });
+    setTimeout(() => {
+      toast({
+        title: "Report Downloaded",
+        description: "Dashboard report saved to Downloads.",
+      });
+    }, 2000);
   };
 
   const sensorData = [
