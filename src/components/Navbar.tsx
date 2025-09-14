@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
-import { Leaf, BarChart3, Map, Bell, FileText, Settings, Menu } from "lucide-react";
+import { Leaf, BarChart3, Map, Bell, FileText, Settings, Menu, Image } from "lucide-react";
 import { useState } from "react";
 
 const Navbar = () => {
@@ -10,6 +10,7 @@ const Navbar = () => {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: BarChart3 },
     { name: 'Field Map', href: '/field-map', icon: Map },
+    { name: 'Field Images', href: '/field-images', icon: Image },
     { name: 'Alerts', href: '/alerts', icon: Bell },
     { name: 'Reports', href: '/reports', icon: FileText },
   ];
